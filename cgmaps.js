@@ -23,7 +23,7 @@ function Location(node) {
         return;
     }
     this.description = node.getAttribute("description");
-    this.latlng = new GLatLng(parseFloat(node.getAttribute("lat")),
+    this.latlng = new google.maps.LatLng(parseFloat(node.getAttribute("lat")),
                               parseFloat(node.getAttribute("lng")));
 }
 
@@ -52,18 +52,10 @@ function Listing(node, maxPrice) {
         if (priceRatio > 0.9)
             rgb = "335588";
 
-        var coloredIcon = new GIcon(G_DEFAULT_ICON);
-        coloredIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=|" + rgb + "|000";
-        coloredIcon.shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
-
-        coloredIcon.iconSize = new GSize(18,30);
-        //coloredIcon.shadowSize = new GSize(22, 20);
-        //coloredIcon.iconAnchor = new GPoint(6, 20);
-        //coloredIcon.infoWindowAnchor = new GPoint(5, 1);
-        // Set up our GMarkerOptions object literal
+        var coloredIcon = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=|" + rgb + "|000";
         markerOptions = { icon:coloredIcon };
 
-        var marker = new GMarker(point, markerOptions);
+        var marker = new google.maps.marker(point, markerOptions);
         marker.value = number;
         this.myHtml = myHtml;
 
@@ -92,9 +84,9 @@ function Listing(node, maxPrice) {
         
         // This should remove the event listeners, but for whatever reason, it does not.
         //if (this.clickListner != null)
-        //    GEvent.removeListner(this.clickListner);
+        //    google.maps.event.removeListner(this.clickListner);
 
-        this.clickListner = GEvent.addListener(this.marker, "click", function() {
+        this.clickListner = google.maps.event.addListener(this.marker, "click", function() {
             map.openInfoWindowHtml(latlng, html);
             if (selectedRow != null)
                 selectedRow.style.backgroundColor = "FFFFFF";
@@ -288,15 +280,17 @@ function Criteria() {
 
 ////////////////////////////////////////////////////////////
 function downloadXml(file, handler) {
-    try {
-        GDownloadUrl(file, function(data, responseCode) {
-            var xml = GXml.parse(data);
-            var node = xml.documentElement;
-            handler(node);
-        });
-    } catch(e) {
-        toInfo("Error downloading \""+file+"\": " + e);
-    }
+    $.ajax({
+      url: file,
+      success: function(data) {
+        console.log(data);
+        var node = data.documentElement;
+        handler(node);
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        toInfo("Error: " + textStatus + "<br/>" + errorThrown);
+      }
+    });
 }
 
 function downloadDB() {
@@ -345,28 +339,31 @@ function isEmpty(s) {
 }
 
 function initialize() {
-    if (!GBrowserIsCompatible())
-        return;
 
     // Set up the map
-    map = new GMap2(document.getElementById("map_canvas"));
+    var map = new google.maps.Map(
+      document.getElementById('map-canvas'), {
+        center: center,
+        zoom: 13,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
 
-    map.setCenter(center, 13);
-    map.setUIToDefault();
-    map.setMapType(G_NORMAL_MAP);
     //map.setMapType(G_PHYSICAL_MAP);
 
     // Set up the landmark
-    var coloredIcon = new GIcon(G_DEFAULT_ICON);
-    coloredIcon.image = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=|FF0000|000";
-    coloredIcon.shadow = "http://chart.apis.google.com/chart?chst=d_map_pin_shadow";
-    coloredIcon.iconSize = new GSize(18,30);
-    landmark = new GMarker(center, {draggable: true, icon: coloredIcon});
-    map.addOverlay(landmark);
-    GEvent.addListener(landmark, "dragstart", function() { map.closeInfoWindow(); showListings(); });
-    GEvent.addListener(landmark, "drag", function() {search();});
-    GEvent.addListener(landmark, "dragend", function() {search();});
-    GEvent.addListener(map, "click", function() { 
+    var coloredIcon = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=|FF0000|000";
+
+    landmark = new google.maps.Marker({
+      position: center, 
+      map: map,
+      draggable: true, 
+      icon: coloredIcon
+    });
+
+    google.maps.event.addListener(landmark, "dragstart", function() { map.closeInfoWindow(); showListings(); });
+    google.maps.event.addListener(landmark, "drag", function() {search();});
+    google.maps.event.addListener(landmark, "dragend", function() {search();});
+    google.maps.event.addListener(map, "click", function() { 
         if (selectedRow != null)
             selectedRow.style.backgroundColor = "FFFFFF";
         selectedRow = null;
@@ -446,7 +443,7 @@ function drawCircle(circleRadius){
 	    var y = asin(sin(lat1)*cos(d)+cos(lat1)*sin(d)*cos(tc));
 	    var dlng = atan2(sin(tc)*sin(d)*cos(lat1),cos(d)-sin(lat1)*sin(y));
 	    var x = ((lng1-dlng+PI) % (2*PI)) - PI ; // MOD function
-	    var point = new GLatLng(parseFloat(y*(180/PI)),parseFloat(x*(180/PI)));
+	    var point = new google.maps.LatLng(parseFloat(y*(180/PI)),parseFloat(x*(180/PI)));
 	    circlePoints.push(point);
 	}
     }
@@ -458,7 +455,7 @@ function drawCircle(circleRadius){
 	circle = new GPolygon(circlePoints, '#335588', 1, 1);	
     map.addOverlay(circle); 
 
-    GEvent.addListener(circle, "click", function() {
+    google.maps.event.addListener(circle, "click", function() {
         if (selectedRow != null)
             selectedRow.style.backgroundColor = "FFFFFF";
         selectedRow = null;
@@ -479,4 +476,5 @@ function search() {
 var db, map, criteria, landmark, circle = null, selectedRow = null;
 var utils = new Utils();
 
+google.maps.event.addDomListener(window, "load", initialize);
 

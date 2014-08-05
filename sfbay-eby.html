@@ -5,17 +5,18 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <title>Easybay Craigslist-Google Maps Housing Search</title>
-    <script src="http://maps.google.com/maps?file=api&v=2&key=AIzaSyCPpWmXB4nANPrj_U0JXylM_TtPZPkjYc4&sensor=false"
-            type="text/javascript"></script>
+    <script type="text/javascript" src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyDl4Ui6cUxxohhTqjVKscCMtvhaz8DaPUI&sensor=false"></script>
+
     <script src="cgmaps.js"></script>
     <script type="text/javascript">
         var file = "data/sfbay-eby-apa.xml";
-        var center = new GLatLng(37.871991,-122.260087);
+        var center = new google.maps.LatLng(37.871991,-122.260087);
     </script>
     <link href="cgmaps.css" rel="stylesheet" type="text/css">
   </head>
 
-  <body onload="initialize()" onunload="GUnload()">
+  <body>
 
   <div id="left" style="float:left; width:65%; height: 100%">
     <div id="search" style="width:100%; height:5%">
@@ -46,7 +47,7 @@
         </table>
       </form>
     </div> 
-    <div id="map_canvas" style="width: 100%; height: 95%"></div>
+    <div id="map-canvas" height=800 width=800 style="width: 100%; height: 95%"></div>
   </div>
 
   <div id="right" style="float:right; width: 34.7%; height: 100%">

@@ -8,10 +8,10 @@ import urllib2
 # To get the local time
 from datetime import datetime
 # For system calls
-import os 
+import os
 
 #key = 'ABQIAAAA-NgCz43Ca2477hZRZfa_FRSiXr9Ixf3duqcZ99mp_W37smOlHBT-xPJ02WT_Q7K67b_JSKamB1Lc3w&'
-key = 'ABQIAAAAnfs7bKE82qgb3Zc2YyS-oBT2yXp_ZAY8_ufC3CFXhHIE1NvwkxSySz_REpPq-4WZA27OwgbtyR3VcA&'
+key = 'AIzaSyDl4Ui6cUxxohhTqjVKscCMtvhaz8DaPUI'
 
 # Set up file names
 base_url = "http://" + region + ".craigslist.org"
@@ -57,7 +57,7 @@ for neighborhood in neighborhood_numbers:
            break
         entries = entries + cur_entries
 
-        print "Grabbed " + str(len(cur_entries)) + " entries from " + neighborhood_name + ", " + location + " for a total of " + str(len(entries)) + " " + cur_url  
+        print "Grabbed " + str(len(cur_entries)) + " entries from " + neighborhood_name + ", " + location + " for a total of " + str(len(entries)) + " " + cur_url
 
         for entry in cur_entries:
             # Pause since Google's Geocoder gets unhappy if we ping it too quickly
@@ -67,16 +67,16 @@ for neighborhood in neighborhood_numbers:
             entry_url = str(entry['link'])
 
             # Download the entries page to get the details
-            try: 
+            try:
                 f = urllib2.urlopen(entry_url)
                 webpage = f.read()
                 f.close()
                 webpage = re.sub("[\n\t]", " ", webpage)
             except:
                 print "Error reading url " + entry_url
-                continue 
+                continue
 
-            try:    
+            try:
                 # Get the location information
                 location_info = re.search(r"<!-- START CLTAGS --> .* <!-- END CLTAGS -->", webpage)
                 if location_info == None:
@@ -119,13 +119,13 @@ for neighborhood in neighborhood_numbers:
                 geocoding_url = geocoding_base + geocoding_loc
             except:
                 continue
-            try: 
+            try:
                 f = urllib2.urlopen(geocoding_url)
                 entry_geocode = f.read()
                 f.close()
             except:
                 print "Error reading url " + geocoding_url
-                continue 
+                continue
 
             try:
                 if (cmp(entry_geocode[0:3], str(200)) != 0):
@@ -137,28 +137,28 @@ for neighborhood in neighborhood_numbers:
 
                 # Get the post date
                 entry_date = str(scrape(""" Date: {{ }}, """, webpage))
-    
+
                 # Get the craigslist id
                 entry_id = re.search(r"[0-9]+", entry_url).group(0)
-    
+
                 # Get the list price
                 entry_price = re.search(r"\$[0-9]+", entry['description']).group(0)[1:]
-    
+
                 # Get the number of bedrooms, =-1 if not present
                 has_bedroom = re.search(r"[0-9]+[bB][rR]", entry['description'])
                 if has_bedroom != None:
                     entry_bedroom = str(re.search(r"[0-9]+", has_bedroom.group(0)).group(0))
                 else:
                     entry_bedroom = ""
-    
+
                 # Get the short description from the title
                 entry_description = re.sub(r"^\$[0-9]+ / [0-9]+[Bb][Rr] - ", "", entry['description'])[:-2]
                 entry_description = re.sub(r"^\$[0-9]+ ", "", entry_description)
                 entry_description = re.sub(r"\"", "'", entry_description)
-    
+
                 # Get the neighborhood (ex/ Palo Alto)
                 entry_neighborhood = str(entry['neighborhood']).title()
-                
+
                 # Get whether or not pets are allowed
                 pets = "no"
                 dogs = re.search(r"dogs are OK - wooof", webpage)
@@ -166,7 +166,7 @@ for neighborhood in neighborhood_numbers:
                 if cats != None or dogs != None:
                     pets = "yes"
             except:
-                continue    
+                continue
 
             outfile.write('    <listing id="' + entry_id + '" url="' + entry_url + '" postingDate="' + entry_date + '" totalPrice = "' + entry_price + '" numBedrooms="' + entry_bedroom + '" pets="' + pets + '" description="' + entry_description + '" neighborhood="' + entry_neighborhood + '">\n')
             outfile.write('      <location description="' + entry_address + '" lat="' + entry_lat + '" lng="' + entry_long + '">\n')
@@ -174,7 +174,7 @@ for neighborhood in neighborhood_numbers:
             outfile.write('    </listing>\n')
 
         try:
-            next_line = scrape(""" <a href='{{ }}'> <b>Next&gt;&gt;</b></a> """, url = cur_url) 
+            next_line = scrape(""" <a href='{{ }}'> <b>Next&gt;&gt;</b></a> """, url = cur_url)
             if next_line == None:
                 break
             else:
